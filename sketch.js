@@ -42,6 +42,10 @@ var drawCanvas, uiCanvas;
 var isPressureInit = false;
 var isDrawing = false;
 var isDrawingJustStarted = false;
+var penStrokeGreyscale = 0;
+var backgroundColor = 255;
+const IP = '184.105.174.119';
+const PORT = '8000';
 
 
 /***********************
@@ -49,8 +53,13 @@ var isDrawingJustStarted = false;
 ************************/
 new p5(function(p) {
   
-  p.setup = function() {
     
+  p.mouseReleased = function () {
+    sendModel();
+  }
+
+  p.setup = function () {
+
     // Filters used to smooth position and pressure jitter
     xFilter = new OneEuroFilter(60, minCutoff, beta, 1.0);
     yFilter = new OneEuroFilter(60, minCutoff, beta, 1.0);
@@ -60,8 +69,9 @@ new p5(function(p) {
     disableScroll();
     
     //Initialize the canvas
-    drawCanvas = p.createCanvas(p.windowWidth, p.windowHeight);
+    drawCanvas = p.createCanvas(512, 512);
     drawCanvas.id("drawingCanvas");
+    p.background(backgroundColor);
     drawCanvas.position(0, 0);    
   }
 
@@ -106,13 +116,13 @@ new p5(function(p) {
         x = p.lerp(prevPenX, penX, amt);
         y = p.lerp(prevPenY, penY, amt);
         p.noStroke();
-        p.fill(10)
+        p.fill(penStrokeGreyscale);
         p.ellipse(x, y, s);      
       }
 
       // Draw an ellipse at the latest position
       p.noStroke();
-      p.fill(10)
+      p.fill(penStrokeGreyscale);
       p.ellipse(penX, penY, brushSize);
 
       // Save the latest brush values for next frame
@@ -138,8 +148,8 @@ new p5(function(p) {
 ************************/
 new p5(function(p) {
 
-  	p.setup = function() {
-      uiCanvas = p.createCanvas(p.windowWidth, p.windowHeight);
+  p.setup = function () {
+      uiCanvas = p.createCanvas(512, 512);
       uiCanvas.id("uiCanvas");
       uiCanvas.position(0, 0);
     }
@@ -159,7 +169,7 @@ new p5(function(p) {
         // is only there as a visual indicator
         // that the sketch is running
         p.noStroke();
-        p.fill(100)
+      p.fill(penStrokeGreyscale);
         p.rect(0, 0, p.frameCount % p.width, 4);
       }
     }
@@ -225,3 +235,38 @@ function disableScroll(){
 function enableScroll(){
     document.body.removeEventListener('touchmove', preventDefault, { passive: false });
 }*/
+
+function sendModel() {
+  let canvas = document.getElementById('drawingCanvas');
+  let dataurl = canvas.toDataURL();
+
+  const inputs = { image: dataurl };
+
+  fetch(`http://{IP}:{PORT}/query`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(inputs),
+  })
+    .then(response => response.json())
+    .then(outputs => {
+      const { image } = outputs;
+      let body = document.getElementsByTagName('body')[0];
+      let canvas = document.createElement('canvas');
+      canvas.id = "imageCanvas";
+      canvas.width = 512;
+      canvas.height = 512;
+      canvas.style.position = 'absolute';
+      canvas.style.left = '600px';
+      body.append(canvas);
+      let ctx = canvas.getContext('2d');
+
+      let img = new Image();
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0, 512, 512);
+      };
+      img.src = image;
+    });
+}
