@@ -241,8 +241,7 @@ function sendModel() {
   let dataurl = canvas.toDataURL();
 
   const inputs = { image: dataurl };
-
-  fetch(`http://{IP}:{PORT}/query`, {
+  fetch(`http://${IP}:${PORT}/query`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
