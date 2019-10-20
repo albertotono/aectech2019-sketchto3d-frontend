@@ -26,12 +26,12 @@ To re-establish freehand sketching as a design tool, enhancing it with automated
 ### Installation
 No need to install anything just run a local instance on your browser.
 
-*install node js
-*npm install http-server -g
-*http-server .
-
+* install node js
+* npm install http-server -g
+* http-server .
 and then open this on chrome 
-*http://127.0.0.1:8080/index.html
+* http://127.0.0.1:8080/index.html
+
 ### Dependencies
 - [p5.js](https://p5js.org/reference/#/p5.Vector/add)
 - [rhino3dm.NET](https://github.com/mcneel/rhino3dm)
